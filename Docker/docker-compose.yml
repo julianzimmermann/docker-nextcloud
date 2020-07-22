@@ -1,0 +1,21 @@
+version: "3.7"
+services:
+  php:
+    build: ./conf/php-fpm
+    restart: always
+    ports:
+      - 9000
+  nginx:
+    build: ./conf/nginx
+    restart: always
+    ports:
+      - 8080:80
+    environment:
+      NGINX_HOST: php
+      VIRTUAL_HOST: ${ALL_NGINX_VIRTUAL_HOST}
+      NGINX_SERVER_NAME: ${ALL_NGINX_VIRTUAL_HOST}
+      NGINX_ERROR_LOG: ${NGINX_ERROR_LOG}
+      NGINX_ACCESS_LOG: ${NGINX_ACCESS_LOG}
+      NGINX_ROOT_DIR: ${NGINX_ROOT_DIR}
+    links:
+      - php
