@@ -1,4 +1,4 @@
-FROM jzit/php-fpm:alpine
+FROM jzit/php:7.4-fpm-alpine
 
 # OPcache defaults
 ENV PHP_OPCACHE_ENABLE="1"
@@ -21,6 +21,5 @@ ADD ./opcache.ini "$PHP_INI_DIR/conf.d/opcache.ini"
 # Copy the PHP-FPM configuration file
 COPY ./www.conf /usr/local/etc/php-fpm.d/www.conf
 
-# Copy the PHP application
-COPY ./index.php /var/www/public/index.php
-RUN chown -R www-data:www-data /var/www/public
+RUN mkdir -p /var/www/nextcloud/releases/current/public \
+    && chown -R www-data:www-data /var/www/nextcloud/releases/current/public
