@@ -4,10 +4,13 @@ services:
     build: ./conf/php-fpm
     container_name: ${PROJECT_NAME}_php
     restart: always
+    user: "${UID}:${GID}"
     ports:
       - 9000
     environment:
       APP_ROOT_DIR: ${NGINX_ROOT_DIR}
+      UID: ${UID}
+      GID: ${GID}
     volumes:
       - nfsmount_nextcloud:/var/www/nextcloud/releases/current
     networks:
@@ -19,6 +22,7 @@ services:
       - traefik.enable=true
       - traefik.http.routers.nginx.rule=Host(`${ALL_NGINX_VIRTUAL_HOST}`)
     restart: always
+    user: "${UID}:${GID}"
     ports:
       - 80
     environment:
@@ -28,6 +32,8 @@ services:
       NGINX_ERROR_LOG: ${NGINX_ERROR_LOG}
       NGINX_ACCESS_LOG: ${NGINX_ACCESS_LOG}
       NGINX_ROOT_DIR: ${NGINX_ROOT_DIR}
+      UID: ${UID}
+      GID: ${GID}
     links:
       - php
     volumes:
@@ -40,7 +46,7 @@ volumes:
         driver: local
         driver_opts:
             type: nfs
-            o: addr=host.docker.internal,rw,nolock,hard,nointr,nfsvers=3
+            o: addr=127.0.0.1,rw,nolock,hard,nointr,nfsvers=4
             device: ":${PATH_TO_PROJECT}"
 
 networks:
