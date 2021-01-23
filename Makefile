@@ -8,7 +8,7 @@ docker-build: ## build
 
 .PHONY: docker-up
 docker-up: ## up
-	cd Docker && docker-compose start up -d
+	cd Docker && docker-compose up -d
 
 .PHONY: docker-start
 docker-start: ## start
