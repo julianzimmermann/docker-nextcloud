@@ -23,8 +23,7 @@ services:
       PHP_INI_MAX_EXECUTION_TIME: ${PHP_INI_MAX_EXECUTION_TIME}
     volumes:
       - nextcloud-data:/var/www/nextcloud/releases/current
-      - /projekte/docker-traefik/data/certs/certs/${NGINX_VIRTUAL_HOST}.crt:/etc/ssl/nginx/${NGINX_VIRTUAL_HOST}.crt
-      - /projekte/docker-traefik/data/certs/private/${NGINX_VIRTUAL_HOST}.key:/etc/ssl/nginx/${NGINX_VIRTUAL_HOST}.key
+      - nextcloud-uploads:/var/www/nextcloud/data
     networks:
       - nextcloud
     
