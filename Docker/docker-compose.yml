@@ -24,17 +24,17 @@ services:
     volumes:
       - nextcloud-data:/var/www/nextcloud/releases/current
     networks:
-      - nextcloud
+      - blogintern
     
   nextcloud_nginx:
     build: ./conf/nginx
     container_name: ${PROJECT_NAME}_nginx
     labels:
       - "traefik.enable=true"
-      - "traefik.http.middlewares.https-www-redirect.redirectregex.regex=^http://(?:www.)?${NGINX_VIRTUAL_HOST}/(.*)"
-      - "traefik.http.middlewares.https-www-redirect.redirectregex.replacement=https://www.${NGINX_VIRTUAL_HOST}/$${1}"
-      - "traefik.http.middlewares.https-www-redirect-sec.redirectregex.regex=^http://(?:www.)?${NGINX_VIRTUAL_HOST}/(.*)"
-      - "traefik.http.middlewares.https-www-redirect-sec.redirectregex.replacement=https://www.${NGINX_VIRTUAL_HOST}/$${1}"
+      - "traefik.http.middlewares.https-redirect.redirectregex.regex=^http://${NGINX_VIRTUAL_HOST}/(.*)"
+      - "traefik.http.middlewares.https-redirect.redirectregex.replacement=https://${NGINX_VIRTUAL_HOST}/$${1}"
+      - "traefik.http.middlewares.https-redirect-sec.redirectregex.regex=^http://${NGINX_VIRTUAL_HOST}/(.*)"
+      - "traefik.http.middlewares.https-redirect-sec.redirectregex.replacement=https://${NGINX_VIRTUAL_HOST}/$${1}"
       - "traefik.http.routers.${PROJECT_NAME}.service=${PROJECT_NAME}"
       - "traefik.http.routers.${PROJECT_NAME}.entrypoints=http"
       - "traefik.http.routers.${PROJECT_NAME}.rule=Host(`www.${NGINX_VIRTUAL_HOST}`) || Host(`${NGINX_VIRTUAL_HOST}`)"
