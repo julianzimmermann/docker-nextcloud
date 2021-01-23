@@ -3,11 +3,14 @@ FROM jzit/php:7.4-fpm-alpine
 RUN apk update \
     && apk add php7-mysqli \
     && apk add gettext \
-    && apk add php7-gd
+    && apk add freetype \
+    && apk add php7-gd \
+    && apk add php7-bcmath
 
 RUN docker-php-ext-install mysqli pdo pdo_mysql \
     && docker-php-ext-enable pdo_mysql \
-    && docker-php-ext-enable gd
+    && docker-php-ext-enable gd \
+    && docker-php-ext-enable bcmath
 
 # OPcache defaults
 ENV PHP_OPCACHE_ENABLE="1"
