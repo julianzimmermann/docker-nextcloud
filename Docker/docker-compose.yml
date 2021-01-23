@@ -66,6 +66,7 @@ services:
       - nextcloud_php
     volumes:
       - nextcloud-data:/var/www/nextcloud/releases/current
+      - nextcloud-uploads:/var/www/nextcloud/data
     networks:
       - web
       - nextcloud
@@ -89,6 +90,8 @@ services:
 volumes:
   nextcloud-data:
     name: "${PROJECT_NAME}-data"
+  nextcloud-uploads:
+    name: "${PROJECT_NAME}-uploads"
   nextcloud_db-data:
     name: "${PROJECT_NAME}-db-data"
 
