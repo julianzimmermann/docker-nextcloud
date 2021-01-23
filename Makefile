@@ -4,20 +4,20 @@ help: ## Show this help
 
 .PHONY: docker-build
 docker-build: ## build
-	cd docker && docker-compose up -d --build
+	cd Docker && docker-compose up -d --build
 
 .PHONY: docker-up
 docker-up: ## up
-	cd docker && docker-compose start up -d
+	cd Docker && docker-compose start up -d
 
 .PHONY: docker-start
 docker-start: ## start
-	cd docker && docker-compose start
+	cd Docker && docker-compose start
 
 .PHONY: docker-stop
 docker-stop: ## stop
-	cd docker && docker-compose stop
+	cd Docker && docker-compose stop
 
 .PHONY: docker-down
 docker-down: ## down
-	cd docker && docker-compose down
+	cd Docker && docker-compose down
