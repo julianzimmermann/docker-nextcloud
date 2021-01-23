@@ -36,10 +36,10 @@ ENV PHP_INI_MAX_INPUT_TIME=60
 ENV PHP_INI_MAX_EXECUTION_TIME=30
 
 # Add the opcache configuration
-ADD ./opcache.ini.template "$PHP_INI_DIR/conf.d/opcache.ini.template"
+COPY ./opcache.ini.template "$PHP_INI_DIR/conf.d/opcache.ini.template"
 
 # Add php.ini
-ADD ./php.ini.template "$PHP_INI_DIR/conf.d/php.ini.template"
+COPY ./php.ini.template "$PHP_INI_DIR/conf.d/php.ini.template"
 
 # Copy the PHP-FPM configuration file
 COPY ./www.conf.template /usr/local/etc/php-fpm.d/www.conf.template
