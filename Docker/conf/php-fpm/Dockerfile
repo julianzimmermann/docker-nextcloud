@@ -49,7 +49,7 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh \
     && set -e \
     && export ESC="$" \
     && envsubst < /usr/local/etc/php/conf.d/opcache.ini.template > /usr/local/etc/php/conf.d/opcache.ini \
-    && envsubst < /usr/local/etc/php/conf.d/opcache.php.template > /usr/local/etc/php/conf.d/php.ini \
+    && envsubst < /usr/local/etc/php/conf.d/php.ini.template > /usr/local/etc/php/conf.d/php.ini \
     && envsubst < /usr/local/etc/php-fpm.d/www.conf.template > /usr/local/etc/php-fpm.d/www.conf
 
 RUN mkdir -p /var/www/nextcloud/releases/current \
