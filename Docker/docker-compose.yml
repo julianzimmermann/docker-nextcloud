@@ -1,16 +1,16 @@
 version: "3.7"
 services:
-  php:
+  nextcloud_php:
     build: ./conf/php-fpm
     container_name: ${PROJECT_NAME}_php
     restart: always
     user: "82:82"
     links:
-      - db
+      - nextcloud_db
     ports:
       - 9000
     environment:
-      APP_ROOT_DIR: /var/www/project/releases/current
+      APP_ROOT_DIR: /var/www/nextcloud/releases/current
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
@@ -22,11 +22,11 @@ services:
       PHP_INI_MAX_INPUT_TIME: ${PHP_INI_MAX_INPUT_TIME}
       PHP_INI_MAX_EXECUTION_TIME: ${PHP_INI_MAX_EXECUTION_TIME}
     volumes:
-      - project-data:/var/www/project/releases/current
+      - nextcloud-data:/var/www/nextcloud/releases/current
     networks:
-      - blogintern
+      - nextcloud
     
-  nginx:
+  nextcloud_nginx:
     build: ./conf/nginx
     container_name: ${PROJECT_NAME}_nginx
     labels:
@@ -54,24 +54,24 @@ services:
       - 80
       - 443
     environment:
-      NGINX_HOST: php
+      NGINX_HOST: nextcloud_php
       VIRTUAL_HOST: ${NGINX_VIRTUAL_HOST}
       NGINX_SERVER_NAME: ${NGINX_VIRTUAL_HOST}
       NGINX_ERROR_LOG: ${NGINX_ERROR_LOG}
       NGINX_ACCESS_LOG: ${NGINX_ACCESS_LOG}
-      NGINX_ROOT_DIR: /var/www/project/releases/current
+      NGINX_ROOT_DIR: /var/www/nextcloud/releases/current
       PHP_INI_UPLOAD_SIZE: ${PHP_INI_UPLOAD_SIZE}
       UID: 82
       GID: 82
     links:
-      - php
+      - nextcloud_php
     volumes:
-      - project-data:/var/www/project/releases/current
+      - nextcloud-data:/var/www/nextcloud/releases/current
     networks:
       - web
-      - blogintern
+      - nextcloud
 
-  db:
+  nextcloud_db:
     image: mysql:5.7
     container_name: ${PROJECT_NAME}_db
     restart: always
@@ -83,18 +83,18 @@ services:
     ports:
       - 3306
     volumes:
-      - db-data:/var/lib/mysql
+      - nextcloud_db-data:/var/lib/mysql
     networks:
-      - blogintern
+      - nextcloud
 
 volumes:
-  project-data:
-    name: "${PROJECT_NAME}-project-data"
-  db-data:
-    name: "${PROJECT_NAME}-db"
+  nextcloud-data:
+    name: "${PROJECT_NAME}-data"
+  nextcloud_db-data:
+    name: "${PROJECT_NAME}-db-data"
 
 networks:
   web:
     external: true
-  blogintern:
+  nextcloud:
     name: "${PROJECT_NAME}-intern-network"
