@@ -6,19 +6,30 @@ map ${ESC}http_host ${ESC}application_env {
 
 server {
     index index.php index.html;
-    server_name ${NGINX_SERVER_NAME};
+    server_name ${NGINX_SERVER_NAME} *.${NGINX_SERVER_NAME};
     error_log  ${NGINX_ERROR_LOG};
     access_log ${NGINX_ACCESS_LOG};
-    root ${NGINX_ROOT_DIR};
+    root /var/www/nextcloud/releases/current;
+    index index.php;
+    client_max_body_size ${PHP_INI_UPLOAD_SIZE};
 
     location ~ \.php$ {
         try_files ${ESC}uri ${ESC}uri/ =404;
         fastcgi_split_path_info ^(.+\.php)(/.+)$;
-        fastcgi_pass php:9000;
+        fastcgi_pass nextcloud_php:9000;
         fastcgi_index index.php;
         include fastcgi_params;
         fastcgi_param SCRIPT_FILENAME ${ESC}document_root${ESC}fastcgi_script_name;
         fastcgi_param PATH_INFO ${ESC}fastcgi_path_info;
         fastcgi_param APPLICATION_ENV ${ESC}application_env;
+    }
+
+    location / {
+        try_files ${ESC}uri ${ESC}uri/ /index.php?${ESC}args;
+    }
+
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico)$ {
+        expires max;
+        log_not_found off;
     }
 }

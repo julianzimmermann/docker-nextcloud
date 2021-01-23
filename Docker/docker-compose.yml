@@ -4,51 +4,97 @@ services:
     build: ./conf/php-fpm
     container_name: ${PROJECT_NAME}_php
     restart: always
-    user: "${UID}:${GID}"
+    user: "82:82"
+    links:
+      - db
     ports:
       - 9000
     environment:
-      APP_ROOT_DIR: ${NGINX_ROOT_DIR}
-      UID: ${UID}
-      GID: ${GID}
+      APP_ROOT_DIR: /var/www/project/releases/current
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      PHP_INI_UPLOAD_SIZE: ${PHP_INI_UPLOAD_SIZE}
+      PHP_INI_SMTP: ${PHP_INI_SMTP}
+      PHP_INI_SMTP_PORT: ${PHP_INI_SMTP_PORT}
+      PHP_INI_MEMORY_LIMIT: ${PHP_INI_MEMORY_LIMIT}
+      PHP_INI_MAX_INPUT_TIME: ${PHP_INI_MAX_INPUT_TIME}
+      PHP_INI_MAX_EXECUTION_TIME: ${PHP_INI_MAX_EXECUTION_TIME}
     volumes:
-      - nfsmount_nextcloud:/var/www/nextcloud/releases/current
+      - project-data:/var/www/project/releases/current
     networks:
-      - web
+      - blogintern
+    
   nginx:
     build: ./conf/nginx
     container_name: ${PROJECT_NAME}_nginx
     labels:
-      - traefik.enable=true
-      - traefik.http.routers.nginx.rule=Host(`${ALL_NGINX_VIRTUAL_HOST}`)
+      - "traefik.enable=true"
+      - "traefik.http.middlewares.https-www-redirect.redirectregex.regex=^http://(?:www.)?${NGINX_VIRTUAL_HOST}/(.*)"
+      - "traefik.http.middlewares.https-www-redirect.redirectregex.replacement=https://www.${NGINX_VIRTUAL_HOST}/$${1}"
+      - "traefik.http.middlewares.https-www-redirect-sec.redirectregex.regex=^http://(?:www.)?${NGINX_VIRTUAL_HOST}/(.*)"
+      - "traefik.http.middlewares.https-www-redirect-sec.redirectregex.replacement=https://www.${NGINX_VIRTUAL_HOST}/$${1}"
+      - "traefik.http.routers.${PROJECT_NAME}.service=${PROJECT_NAME}"
+      - "traefik.http.routers.${PROJECT_NAME}.entrypoints=http"
+      - "traefik.http.routers.${PROJECT_NAME}.rule=Host(`www.${NGINX_VIRTUAL_HOST}`) || Host(`${NGINX_VIRTUAL_HOST}`)"
+      - "traefik.http.routers.${PROJECT_NAME}.middlewares=https-www-redirect"
+      - "traefik.http.services.${PROJECT_NAME}.loadbalancer.server.port=80"
+      - "traefik.http.routers.${PROJECT_NAME}-sec.service=${PROJECT_NAME}-sec"
+      - "traefik.http.routers.${PROJECT_NAME}-sec.rule=Host(`www.${NGINX_VIRTUAL_HOST}`) || Host(`${NGINX_VIRTUAL_HOST}`)"
+      - "traefik.http.routers.${PROJECT_NAME}-sec.entrypoints=https"
+      - "traefik.http.routers.${PROJECT_NAME}-sec.middlewares=https-www-redirect-sec"
+      - "traefik.http.routers.${PROJECT_NAME}-sec.tls=true"
+      - "traefik.http.routers.${PROJECT_NAME}-sec.tls.options=myTLSOptions@file"
+      - "traefik.http.routers.${PROJECT_NAME}-sec.tls.certresolver=le"
+      - "traefik.http.services.${PROJECT_NAME}-sec.loadbalancer.server.port=443"
+      - "traefik.port=443"
     restart: always
-    user: "${UID}:${GID}"
     ports:
       - 80
+      - 443
     environment:
       NGINX_HOST: php
-      VIRTUAL_HOST: ${ALL_NGINX_VIRTUAL_HOST}
-      NGINX_SERVER_NAME: ${ALL_NGINX_VIRTUAL_HOST}
+      VIRTUAL_HOST: ${NGINX_VIRTUAL_HOST}
+      NGINX_SERVER_NAME: ${NGINX_VIRTUAL_HOST}
       NGINX_ERROR_LOG: ${NGINX_ERROR_LOG}
       NGINX_ACCESS_LOG: ${NGINX_ACCESS_LOG}
-      NGINX_ROOT_DIR: ${NGINX_ROOT_DIR}
-      UID: ${UID}
-      GID: ${GID}
+      NGINX_ROOT_DIR: /var/www/project/releases/current
+      PHP_INI_UPLOAD_SIZE: ${PHP_INI_UPLOAD_SIZE}
+      UID: 82
+      GID: 82
     links:
       - php
     volumes:
-      - nfsmount_nextcloud:/var/www/nextcloud/releases/current
+      - project-data:/var/www/project/releases/current
     networks:
       - web
+      - blogintern
+
+  db:
+    image: mysql:5.7
+    container_name: ${PROJECT_NAME}_db
+    restart: always
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    ports:
+      - 3306
+    volumes:
+      - db-data:/var/lib/mysql
+    networks:
+      - blogintern
 
 volumes:
-    nfsmount_nextcloud:
-        driver: local
-        driver_opts:
-            type: nfs
-            o: addr=127.0.0.1,rw,nolock,hard,nointr,nfsvers=4
-            device: ":${PATH_TO_PROJECT}"
+  project-data:
+    name: "${PROJECT_NAME}-project-data"
+  db-data:
+    name: "${PROJECT_NAME}-db"
 
 networks:
   web:
     external: true
+  blogintern:
+    name: "${PROJECT_NAME}-intern-network"

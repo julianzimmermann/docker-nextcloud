@@ -1,5 +1,14 @@
 FROM jzit/php:7.4-fpm-alpine
 
+RUN apk update \
+    && apk add php7-mysqli \
+    && apk add gettext \
+    && apk add php7-gd
+
+RUN docker-php-ext-install mysqli pdo pdo_mysql \
+    && docker-php-ext-enable pdo_mysql \
+    && docker-php-ext-enable gd
+
 # OPcache defaults
 ENV PHP_OPCACHE_ENABLE="1"
 ENV PHP_OPCACHE_MEMORY_CONSUMPTION="128"
@@ -15,11 +24,22 @@ ENV PHP_FPM_MIN_SPARE_SERVERS="1"
 ENV PHP_FPM_MAX_SPARE_SERVERS="2"
 ENV PHP_FPM_MAX_REQUESTS="1000"
 
+
+ENV PHP_INI_UPLOAD_SIZE=1024M
+ENV PHP_INI_SMTP=localhost
+ENV PHP_INI_SMTP_PORT=25
+ENV PHP_INI_MEMORY_LIMIT=1024M
+ENV PHP_INI_MAX_INPUT_TIME=60
+ENV PHP_INI_MAX_EXECUTION_TIME=30
+
 # Add the opcache configuration
 ADD ./opcache.ini "$PHP_INI_DIR/conf.d/opcache.ini"
+
+# Add php.ini
+ADD ./php.ini.template "$PHP_INI_DIR/conf.d/php.ini"
 
 # Copy the PHP-FPM configuration file
 COPY ./www.conf /usr/local/etc/php-fpm.d/www.conf
 
-RUN mkdir -p /var/www/nextcloud/releases/current/public \
-    && chown -R www-data:www-data /var/www/nextcloud/releases/current/public
+RUN mkdir -p /var/www/nextcloud/releases/current \
+    && chown -R www-data:www-data /var/www/nextcloud/releases/current
