@@ -8,8 +8,7 @@ COPY ./conf.d/config.template /etc/nginx/conf.d/default.template
 
 # Copy the docker entrypoint file
 COPY ./docker-entrypoint/nginx.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh\
-    && mkdir -p /blynk/data
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 RUN set -x ; \
   addgroup -g 82 -S www-data ; \
   adduser -u 82 -D -S -G www-data www-data && exit 0 ; exit 1
