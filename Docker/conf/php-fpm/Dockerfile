@@ -7,7 +7,7 @@ RUN apk update \
     && apk add php7-gd \
     && apk add php7-bcmath
 
-RUN docker-php-ext-install mysqli pdo pdo_mysql \
+RUN docker-php-ext-install mysqli pdo pdo_mysql bcmath \
     && docker-php-ext-enable pdo_mysql \
     && docker-php-ext-enable gd \
     && docker-php-ext-enable bcmath
@@ -36,13 +36,18 @@ ENV PHP_INI_MAX_INPUT_TIME=60
 ENV PHP_INI_MAX_EXECUTION_TIME=30
 
 # Add the opcache configuration
-ADD ./opcache.ini "$PHP_INI_DIR/conf.d/opcache.ini"
+ADD ./opcache.ini.template "$PHP_INI_DIR/conf.d/opcache.ini.template"
 
 # Add php.ini
-ADD ./php.ini.template "$PHP_INI_DIR/conf.d/php.ini"
+ADD ./php.ini.template "$PHP_INI_DIR/conf.d/php.ini.template"
 
 # Copy the PHP-FPM configuration file
-COPY ./www.conf /usr/local/etc/php-fpm.d/www.conf
+COPY ./www.conf.template /usr/local/etc/php-fpm.d/www.conf.template
+
+COPY ./docker-entrypoint/php.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 RUN mkdir -p /var/www/nextcloud/releases/current \
     && chown -R www-data:www-data /var/www/nextcloud/releases/current
+
+ENTRYPOINT ["docker-entrypoint.sh"]
