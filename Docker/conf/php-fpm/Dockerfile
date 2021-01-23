@@ -45,9 +45,12 @@ ADD ./php.ini.template "$PHP_INI_DIR/conf.d/php.ini.template"
 COPY ./www.conf.template /usr/local/etc/php-fpm.d/www.conf.template
 
 COPY ./docker-entrypoint/php.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh \
+    && set -e \
+    && export ESC="$" \
+    && envsubst < /usr/local/etc/php/conf.d/opcache.ini.template > /usr/local/etc/php/conf.d/opcache.ini \
+    && envsubst < /usr/local/etc/php/conf.d/opcache.php.template > /usr/local/etc/php/conf.d/php.ini \
+    && envsubst < /usr/local/etc/php-fpm.d/www.conf.template > /usr/local/etc/php-fpm.d/www.conf
 
 RUN mkdir -p /var/www/nextcloud/releases/current \
     && chown -R www-data:www-data /var/www/nextcloud/releases/current
-
-ENTRYPOINT ["docker-entrypoint.sh"]
