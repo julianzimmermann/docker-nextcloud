@@ -24,7 +24,7 @@ services:
     volumes:
       - nextcloud-data:/var/www/nextcloud/releases/current
     networks:
-      - blogintern
+      - nextcloud
     
   nextcloud_nginx:
     build: ./conf/nginx
