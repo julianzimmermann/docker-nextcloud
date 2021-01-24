@@ -13,7 +13,7 @@ RUN apk update \
 
 RUN docker-php-ext-configure gd \
     --with-gd \
-    # --with-webp-dir \
+    --with-webp-dir \
     --with-jpeg-dir \
     --with-png-dir \
     --with-zlib-dir \
