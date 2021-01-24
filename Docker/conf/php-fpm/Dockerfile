@@ -1,7 +1,5 @@
 FROM jzit/php:7.4-fpm-alpine
 
-ENV PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
-
 RUN apk update \
     && apk add php7-mysqli \
     && apk add gettext \
