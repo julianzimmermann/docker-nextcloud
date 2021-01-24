@@ -4,6 +4,8 @@ RUN apk update \
     && apk add php7-mysqli \
     && apk add gettext \
     && apk add freetype \
+    && apk add libpng \
+    && apk add libwebp \
     && apk add php7-gd \
     && apk add php7-bcmath
 
