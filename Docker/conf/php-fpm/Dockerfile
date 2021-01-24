@@ -8,6 +8,7 @@ RUN apk update \
     && apk add php7-bcmath
 
 RUN docker-php-ext-install mysqli pdo pdo_mysql bcmath \
+    && docker-php-ext-configure gd --enable-gd --with-freetype --with-jpeg --with-webp; \
     && docker-php-ext-enable pdo_mysql \
     && docker-php-ext-enable gd \
     && docker-php-ext-enable bcmath

@@ -48,9 +48,6 @@ services:
       - "traefik.http.middlewares.${PROJECT_NAME}-calcarddav.redirectregex.permanent=true"
       - "traefik.http.middlewares.${PROJECT_NAME}-calcarddav.redirectregex.regex=https://(.*)/.well-known/(card|cal)dav"
       - "traefik.http.middlewares.${PROJECT_NAME}-calcarddav.redirectregex.replacement=https://$$1/remote.php/dav/"
-      # - "traefik.http.routers.${PROJECT_NAME}-secure.middlewares=${PROJECT_NAME}-dav,secHeaders@file"
-      # - "traefik.http.middlewares.${PROJECT_NAME}-dav.replacepathregex.regex=^/.well-known/ca(l|rd)dav"
-      # - "traefik.http.middlewares.${PROJECT_NAME}-dav.replacepathregex.replacement=/remote.php/dav/"
     restart: always
     ports:
       - 80
