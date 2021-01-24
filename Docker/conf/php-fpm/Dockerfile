@@ -7,7 +7,9 @@ RUN apk update \
     && apk add libpng-dev \
     && apk add libwebp-dev \
     && apk add libxpm-dev \
-    && apk add libjpeg-turbo-dev \
+    && apk add coreutils \
+    && apk add libltdl \
+    && apk add libmcrypt-dev \
     && apk add php7-gd \
     && apk add php7-bcmath
 
