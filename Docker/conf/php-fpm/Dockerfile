@@ -6,11 +6,22 @@ RUN apk update \
     && apk add freetype \
     && apk add libpng \
     && apk add libwebp \
+    && apk add libxpm \
+    && apk add libjpeg-turbo \
     && apk add php7-gd \
     && apk add php7-bcmath
 
-RUN docker-php-ext-install mysqli pdo pdo_mysql bcmath \
-    && docker-php-ext-configure gd --enable-gd --with-freetype --with-jpeg --with-webp \
+RUN docker-php-ext-configure gd \
+    --with-gd \
+    # --with-webp-dir \
+    --with-jpeg-dir \
+    --with-png-dir \
+    --with-zlib-dir \
+    --with-xpm-dir \
+    --with-freetype-dir \
+    --enable-gd-native-ttf
+
+RUN docker-php-ext-install gd mysqli pdo pdo_mysql bcmath \
     && docker-php-ext-enable pdo_mysql \
     && docker-php-ext-enable gd \
     && docker-php-ext-enable bcmath
