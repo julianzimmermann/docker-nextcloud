@@ -11,15 +11,7 @@ RUN apk update \
     && apk add php7-gd \
     && apk add php7-bcmath
 
-RUN docker-php-ext-configure gd \
-    --with-gd \
-    --with-webp-dir \
-    --with-jpeg-dir \
-    --with-png-dir \
-    --with-zlib-dir \
-    --with-xpm-dir \
-    --with-freetype-dir \
-    --enable-gd-native-ttf
+RUN docker-php-ext-configure gd --with-gd --with-webp-dir --with-jpeg-dir --with-png-dir --with-zlib-dir --with-xpm-dir --with-freetype-dir --enable-gd-native-ttf
 
 RUN docker-php-ext-install gd mysqli pdo pdo_mysql bcmath \
     && docker-php-ext-enable pdo_mysql \
