@@ -3,17 +3,20 @@ FROM jzit/php:7.4-fpm-alpine
 RUN apk update \
     && apk add php7-mysqli \
     && apk add gettext \
-    && apk add freetype \
-    && apk add libpng \
-    && apk add libwebp \
-    && apk add libxpm \
-    && apk add libjpeg-turbo \
+    && apk add freetype-dev \
+    && apk add libpng-dev \
+    && apk add libwebp-dev \
+    && apk add libxpm-dev \
+    && apk add libjpeg-turbo-dev \
     && apk add php7-gd \
     && apk add php7-bcmath
 
-RUN docker-php-ext-configure gd --with-gd --with-webp-dir --with-jpeg-dir --with-png-dir --with-zlib-dir --with-xpm-dir --with-freetype-dir --enable-gd-native-ttf
-
-RUN docker-php-ext-install gd mysqli pdo pdo_mysql bcmath \
+RUN docker-php-ext-configure gd --with-gd --with-webp-dir --with-jpeg-dir --with-png-dir --with-zlib-dir --with-xpm-dir --with-freetype-dir --enable-gd-native-ttf \
+    && docker-php-ext-install -j$(nproc) gd \
+    && docker-php-ext-install -j$(nproc) mysqli \
+    && docker-php-ext-install -j$(nproc) pdo \
+    && docker-php-ext-install -j$(nproc) pdo_mysql \
+    && docker-php-ext-install -j$(nproc) bcmath \
     && docker-php-ext-enable pdo_mysql \
     && docker-php-ext-enable gd \
     && docker-php-ext-enable bcmath
