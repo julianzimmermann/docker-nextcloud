@@ -12,7 +12,8 @@ RUN apk update \
     && apk add libmcrypt-dev \
     && apk add php7-gd \
     && apk add php7-bcmath \
-    && apk add busybox-suid
+    && apk add busybox-suid \
+    && apk add busybox-initscripts
 
 RUN docker-php-ext-configure gd --enable-gd --with-webp=/usr/include/ --with-freetype=/usr/include/
 RUN docker-php-ext-install -j$(nproc) gd \
