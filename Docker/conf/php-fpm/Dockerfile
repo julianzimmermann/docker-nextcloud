@@ -6,6 +6,7 @@ RUN apk update \
     && apk add freetype-dev \
     && apk add libpng-dev \
     && apk add libwebp-dev \
+    && apk add libjpeg-turbo-dev
     && apk add libxpm-dev \
     && apk add coreutils \
     && apk add libltdl \
@@ -15,7 +16,7 @@ RUN apk update \
     && apk add busybox-suid \
     && apk add busybox-initscripts
 
-RUN docker-php-ext-configure gd --enable-gd --with-webp=/usr/include/ --with-freetype=/usr/include/
+RUN docker-php-ext-configure gd --enable-gd --with-webp=/usr/include/ --with-freetype=/usr/include/ --with-jpeg --with-xpm
 RUN docker-php-ext-install -j$(nproc) gd \
     && docker-php-ext-install -j$(nproc) mysqli \
     && docker-php-ext-install -j$(nproc) pdo \
