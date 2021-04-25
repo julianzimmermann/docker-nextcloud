@@ -24,7 +24,7 @@ services:
     volumes:
       - nextcloud-data:/var/www/nextcloud/releases/current
       - nextcloud-uploads:/var/www/nextcloud/data
-      - ./conf/crontabs/www-data:/var/spool/cron/crontabs/www-data:rw
+        # - ./conf/crontabs/www-data:/var/spool/cron/crontabs/www-data:rw
     networks:
       - nextcloud
     

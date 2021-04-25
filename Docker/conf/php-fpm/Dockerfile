@@ -59,6 +59,7 @@ COPY ./php.ini.template "$PHP_INI_DIR/conf.d/php.ini.template"
 COPY ./www.conf.template /usr/local/etc/php-fpm.d/www.conf.template
 
 COPY ./docker-entrypoint/php.sh /usr/local/bin/docker-entrypoint.sh
+COPY ./crontabs/www-data /var/spool/cron/crontabs/www-data
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh \
     && set -e \
     && export ESC="$" \
