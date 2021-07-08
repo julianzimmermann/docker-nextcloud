@@ -26,6 +26,17 @@ RUN docker-php-ext-install -j$(nproc) gd \
     && docker-php-ext-enable gd \
     && docker-php-ext-enable bcmath
 
+RUN apk add nodejs \
+    && apk add nodejs-npm
+    
+RUN npm install -g npm@latest
+RUN npm cache clean -f \
+    && npm install -g n
+#RUN n latest
+RUN npm install pm2 -g
+
+COPY ./pm2/* /var/www/pm2/
+    
 # OPcache defaults
 ENV PHP_OPCACHE_ENABLE="1"
 ENV PHP_OPCACHE_MEMORY_CONSUMPTION="128"
@@ -59,6 +70,7 @@ COPY ./php.ini.template "$PHP_INI_DIR/conf.d/php.ini.template"
 COPY ./www.conf.template /usr/local/etc/php-fpm.d/www.conf.template
 
 COPY ./docker-entrypoint/php.sh /usr/local/bin/docker-entrypoint.sh
+
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh \
     && set -e \
     && export ESC="$" \
@@ -67,4 +79,5 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh \
     && envsubst < /usr/local/etc/php-fpm.d/www.conf.template > /usr/local/etc/php-fpm.d/www.conf
 
 RUN mkdir -p /var/www/nextcloud/releases/current \
-    && chown -R www-data:www-data /var/www/nextcloud/releases/current
+    && chown -R www-data:www-data /var/www/nextcloud/releases/current \
+    && chown -R www-data:www-data /var/www/pm2
