@@ -63,6 +63,7 @@ RUN docker-php-ext-install -j$(nproc) gd \
     && docker-php-ext-install -j$(nproc) bcmath \
     && docker-php-ext-install -j$(nproc) intl \
     && docker-php-ext-install -j$(nproc) zip \
+    && docker-php-ext-install -j$(nproc) sysvsem \
     && docker-php-ext-enable pdo_mysql \
     && docker-php-ext-enable gd \
     && docker-php-ext-enable bcmath
