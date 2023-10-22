@@ -24,6 +24,7 @@ RUN apk update \
     && apk add php81-simplexml \
     && apk add php81-sodium \
     && apk add php81-tokenizer \
+    && apk add php81-sysvsem \
     && apk add gettext \
     && apk add icu-dev \
     && apk add libxml2-dev \
