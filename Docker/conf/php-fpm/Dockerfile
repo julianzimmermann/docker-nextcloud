@@ -40,7 +40,6 @@ RUN apk update \
     && apk add php81-gd \
     && apk add php81-bcmath \
     && apk add busybox-suid \
-    && apk add libpng-dev \
     && apk add bzip2-dev \
     && apk add icu-dev \
     && apk add openldap-dev \
@@ -51,9 +50,11 @@ RUN apk update \
     && apk add autoconf \
     && apk add make \
     && apk add gcc \
-    && apk add libc-dev
+    && apk add libc-dev \
+    && apk add zlib-dev
 
-RUN docker-php-ext-configure gd --enable-gd --with-webp=/usr/include/ --with-freetype=/usr/include/ --with-jpeg --with-xpm
+RUN docker-php-ext-configure gd --enable-gd --with-webp=/usr/include/ --with-freetype --with-jpeg --with-xpm \
+    && docker-php-ext-configure intl
 RUN docker-php-ext-install -j$(nproc) gd \
     && docker-php-ext-install -j$(nproc) mysqli \
     && docker-php-ext-install -j$(nproc) pdo \
@@ -63,8 +64,7 @@ RUN docker-php-ext-install -j$(nproc) gd \
     && docker-php-ext-install -j$(nproc) zip \
     && docker-php-ext-enable pdo_mysql \
     && docker-php-ext-enable gd \
-    && docker-php-ext-enable bcmath \
-    && docker-php-ext-configure intl
+    && docker-php-ext-enable bcmath
 
 RUN wget https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh -O - | zsh || true
 
