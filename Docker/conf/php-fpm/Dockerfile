@@ -5,7 +5,6 @@ RUN apk update \
     && apk add git \
     && apk add vim \
     && apk add zip \
-    && apk add gmp \
     && apk add libpng-dev \
     && apk add php81-mysqli \
     && apk add php81-curl \
@@ -40,7 +39,19 @@ RUN apk update \
     && apk add libmcrypt-dev \
     && apk add php81-gd \
     && apk add php81-bcmath \
-    && apk add busybox-suid
+    && apk add busybox-suid \
+    && apk add libpng-dev \
+    && apk add bzip2-dev \
+    && apk add icu-dev \
+    && apk add openldap-dev \
+    && apk add imap-dev \
+    && apk add gmp-dev \
+    && apk add imagemagick-dev \
+    && apk add libmemcached-dev \
+    && apk add autoconf \
+    && apk add make \
+    && apk add gcc \
+    && apk add libc-dev
 
 RUN docker-php-ext-configure gd --enable-gd --with-webp=/usr/include/ --with-freetype=/usr/include/ --with-jpeg --with-xpm
 RUN docker-php-ext-install -j$(nproc) gd \
@@ -61,6 +72,7 @@ RUN docker-php-ext-install opcache \
     bz2 \
     exif \
     gd \
+    gmp \
     imap \
     ldap \
     pcntl \
@@ -70,6 +82,10 @@ RUN docker-php-ext-install opcache \
     && docker-php-ext-enable memcached \
     && printf "\n" | pecl install apcu \
     && docker-php-ext-enable apcu
+
+RUN apk del autoconf \
+    make \
+    gcc
 
 # OPcache defaults
 ENV PHP_OPCACHE_ENABLE="1"
