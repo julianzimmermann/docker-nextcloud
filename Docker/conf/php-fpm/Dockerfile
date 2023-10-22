@@ -5,9 +5,11 @@ RUN apk update \
     && apk add git \
     && apk add vim \
     && apk add zip \
+    && apk add gmp \
     && apk add libpng-dev \
     && apk add php81-mysqli \
     && apk add php81-curl \
+    && apk add php81-gmp \
     && apk add php81-xml \
     && apk add php81-zip \
     && apk add php81-opcache \
@@ -59,7 +61,6 @@ RUN docker-php-ext-install opcache \
     bz2 \
     exif \
     gd \
-    gmp \
     imap \
     ldap \
     pcntl \
