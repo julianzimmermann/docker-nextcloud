@@ -25,6 +25,7 @@ services:
       - nextcloud-data:/var/www/nextcloud/releases/current
       - nextcloud-uploads:/var/www/nextcloud/data
     networks:
+      - web
       - nextcloud
     
   nextcloud_nginx:
@@ -86,6 +87,38 @@ services:
       - nextcloud_db-data:/var/lib/mysql
     networks:
       - nextcloud
+
+  collabora:
+    image: collabora/code
+    container_name: ${PROJECT_NAME}_collabora
+    networks:
+      - web
+      - nextcloud
+    cap_add:
+      - MKNOD
+    ports:
+      - 9980:9980
+    expose:
+      - "9980"   
+    environment:
+      - "domain=${COLLABORA_URL}"
+      - "username=${COLLABORA_ADMIN}"
+      - "password=${COLLABORA_PASSWORD}"
+      - "extra_params=--o:ssl.enable=false --o:ssl.termination=true"
+      - 'dictionaries=en_US,de_DE'
+      - VIRTUAL_PROTO=http
+      - VIRTUAL_PORT=9980
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.${PROJECT_NAME}_collabora.rule=Host(`${COLLABORA_URL}`)"
+      - "traefik.http.routers.${PROJECT_NAME}_collabora.entrypoints=https"
+      - "traefik.http.routers.${PROJECT_NAME}_collabora.tls=true"
+      - "traefik.http.routers.${PROJECT_NAME}_collabora.tls.options=myTLSOptions@file"
+      - "traefik.http.routers.${PROJECT_NAME}_collabora.tls.certresolver=le"
+      - "traefik.http.routers.${PROJECT_NAME}_collabora.service=${PROJECT_NAME}_collabora"
+      - "traefik.http.services.${PROJECT_NAME}_collabora.loadbalancer.server.port=9980"
+      - "traefik.docker.network=web"
 
 volumes:
   nextcloud-data:

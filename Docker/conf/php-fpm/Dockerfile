@@ -1,33 +1,95 @@
-FROM jzit/php:7.4-fpm-alpine
+FROM php:8.1-fpm-alpine
 
 RUN apk update \
-    && apk add php7-mysqli \
+    && apk add zsh \
+    && apk add git \
+    && apk add vim \
+    && apk add zip \
+    && apk add libpng-dev \
+    && apk add php81-mysqli \
+    && apk add php81-curl \
+    && apk add php81-gmp \
+    && apk add php81-xml \
+    && apk add php81-zip \
+    && apk add php81-opcache \
+    && apk add php81-mbstring \
+    && apk add php81-intl \
+    && apk add php81-cli \
+    && apk add php81-phar \
+    && apk add php81-dom \
+    && apk add php81-fileinfo \
+    && apk add php81-pdo_sqlite \
+    && apk add php81-pdo_mysql \
+    && apk add php81-session \
+    && apk add php81-simplexml \
+    && apk add php81-sodium \
+    && apk add php81-tokenizer \
+    && apk add php81-sysvsem \
     && apk add gettext \
+    && apk add icu-dev \
+    && apk add libxml2-dev \
     && apk add freetype-dev \
     && apk add libpng-dev \
+    && apk add libressl-dev \
     && apk add libwebp-dev \
     && apk add libjpeg-turbo-dev \
     && apk add libxpm-dev \
     && apk add coreutils \
     && apk add libltdl \
+    && apk add libzip-dev \
     && apk add libmcrypt-dev \
-    && apk add php7-gd \
-    && apk add php7-bcmath \
+    && apk add php81-gd \
+    && apk add php81-bcmath \
     && apk add busybox-suid \
-    && apk add busybox-initscripts
+    && apk add bzip2-dev \
+    && apk add icu-dev \
+    && apk add openldap-dev \
+    && apk add imap-dev \
+    && apk add gmp-dev \
+    && apk add imagemagick-dev \
+    && apk add libmemcached-dev \
+    && apk add autoconf \
+    && apk add make \
+    && apk add gcc \
+    && apk add libc-dev \
+    && apk add zlib-dev
 
-RUN docker-php-ext-configure gd --enable-gd --with-webp=/usr/include/ --with-freetype=/usr/include/ --with-jpeg --with-xpm
+RUN docker-php-ext-configure gd --enable-gd --with-webp=/usr/include/ --with-freetype --with-jpeg --with-xpm \
+    && docker-php-ext-configure intl
 RUN docker-php-ext-install -j$(nproc) gd \
     && docker-php-ext-install -j$(nproc) mysqli \
     && docker-php-ext-install -j$(nproc) pdo \
     && docker-php-ext-install -j$(nproc) pdo_mysql \
     && docker-php-ext-install -j$(nproc) bcmath \
+    && docker-php-ext-install -j$(nproc) intl \
+    && docker-php-ext-install -j$(nproc) zip \
+    && docker-php-ext-install -j$(nproc) sysvsem \
     && docker-php-ext-enable pdo_mysql \
     && docker-php-ext-enable gd \
     && docker-php-ext-enable bcmath
 
-RUN apk add nodejs \
-    && apk add nodejs-npm
+RUN wget https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh -O - | zsh || true
+
+RUN docker-php-ext-install opcache \
+    bz2 \
+    exif \
+    gd \
+    gmp \
+    imap \
+    ldap \
+    pcntl \
+    && printf "\n" | pecl install imagick \
+    && docker-php-ext-enable imagick \
+    && printf "\n" | pecl install memcached \
+    && docker-php-ext-enable memcached \
+    && printf "\n" | pecl install apcu \
+    && docker-php-ext-enable apcu
+
+RUN apk del autoconf \
+    make \
+    gcc
+
+RUN apk add --update nodejs npm
     
 RUN npm install -g npm@latest
 RUN npm cache clean -f \
@@ -35,8 +97,6 @@ RUN npm cache clean -f \
 #RUN n latest
 RUN npm install pm2 -g
 
-COPY ./pm2/* /var/www/pm2/
-    
 # OPcache defaults
 ENV PHP_OPCACHE_ENABLE="1"
 ENV PHP_OPCACHE_MEMORY_CONSUMPTION="128"
@@ -70,6 +130,8 @@ COPY ./php.ini.template "$PHP_INI_DIR/conf.d/php.ini.template"
 COPY ./www.conf.template /usr/local/etc/php-fpm.d/www.conf.template
 
 COPY ./docker-entrypoint/php.sh /usr/local/bin/docker-entrypoint.sh
+
+COPY ./pm2 /var/www/pm2
 
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh \
     && set -e \
