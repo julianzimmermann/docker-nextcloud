@@ -96,7 +96,7 @@ services:
       - nextcloud
     cap_add:
       - MKNOD
-    expose:
+    ports:
       - 9980
     environment:
       DOMAIN: ${COLLABORA_URL}
