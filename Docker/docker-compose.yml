@@ -7,6 +7,7 @@ services:
     user: "82:82"
     links:
       - nextcloud_db
+      - collabora
     ports:
       - 9000
     environment:
@@ -24,7 +25,6 @@ services:
     volumes:
       - nextcloud-data:/var/www/nextcloud/releases/current
       - nextcloud-uploads:/var/www/nextcloud/data
-      - ./conf/crontabs/www-data:/var/spool/cron/crontabs/www-data:rw
     networks:
       - nextcloud
     
@@ -45,10 +45,10 @@ services:
       - "traefik.http.routers.${PROJECT_NAME}-secure.service=${PROJECT_NAME}"
       - "traefik.http.routers.${PROJECT_NAME}-secure.middlewares=${PROJECT_NAME}-calcarddav"
       - "traefik.http.services.${PROJECT_NAME}.loadbalancer.server.port=80"
-      - "traefik.docker.network=web"
-      - "traefik.http.middlewares.${PROJECT_NAME}-calcarddav.redirectregex.permanent=true"
-      - "traefik.http.middlewares.${PROJECT_NAME}-calcarddav.redirectregex.regex=https://(.*)/.well-known/(card|cal)dav"
-      - "traefik.http.middlewares.${PROJECT_NAME}-calcarddav.redirectregex.replacement=https://$$1/remote.php/dav/"
+      - "traefik.docker.network=traefik"
+      - "traefik.http.middlewares.${PROJECT_NAME}-calcarddav.redirect.permanent=true"
+      - "traefik.http.middlewares.${PROJECT_NAME}-calcarddav.redirect.regex=https://(.*)/.well-known/(card|cal)dav"
+      - "traefik.http.middlewares.${PROJECT_NAME}-calcarddav.redirect.replacement=https://$$1/remote.php/dav/"
     restart: always
     ports:
       - 80
@@ -69,7 +69,7 @@ services:
       - nextcloud-data:/var/www/nextcloud/releases/current
       - nextcloud-uploads:/var/www/nextcloud/data
     networks:
-      - web
+      - traefik
       - nextcloud
 
   nextcloud_db:
@@ -88,6 +88,32 @@ services:
     networks:
       - nextcloud
 
+  collabora:
+    image: collabora/code
+    container_name: ${PROJECT_NAME}_collabora
+    networks:
+      - traefik
+    cap_add:
+      - MKNOD
+    expose:
+      - 9980
+    environment:
+      - domain=nextcloud.euredomain.de
+      - username=${COLLABORA_ADMIN}
+      - password=${COLLABORA_PASSWORD}
+      - "extra_params=--o:ssl.enable=false --o:ssl.termination=true"
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.${PROJECT_NAME}_collabora.rule=Host(`${COLLABORA_URL}`)"
+      - "traefik.http.routers.${PROJECT_NAME}_collabora.entrypoints=websecure"
+      - "traefik.http.routers.${PROJECT_NAME}_collabora.tls=true"
+      - "traefik.http.routers.${PROJECT_NAME}_collabora.tls.options=myTLSOptions@file"
+      - "traefik.http.routers.${PROJECT_NAME}_collabora.tls.certresolver=le"
+      - "traefik.http.routers.${PROJECT_NAME}_collabora.service=${PROJECT_NAME}_collabora"
+      - "traefik.http.services.${PROJECT_NAME}_collabora.loadbalancer.server.port=9980"
+      - "traefik.docker.network=traefik"
+
 volumes:
   nextcloud-data:
     name: "${PROJECT_NAME}-data"
@@ -97,7 +123,7 @@ volumes:
     name: "${PROJECT_NAME}-db-data"
 
 networks:
-  web:
+  traefik:
     external: true
   nextcloud:
     name: "${PROJECT_NAME}-intern-network"
