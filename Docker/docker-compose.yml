@@ -99,6 +99,8 @@ services:
       - MKNOD
     ports:
       - 9980
+    exposes:
+      - 9980
     environment:
       - "domain=${COLLABORA_URL}"
       - "username=${COLLABORA_ADMIN}"
