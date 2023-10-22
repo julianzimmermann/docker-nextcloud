@@ -1,0 +1,2 @@
+*/5  *  *  *  * php -f /var/www/nextcloud/releases/current/cron.php
+
