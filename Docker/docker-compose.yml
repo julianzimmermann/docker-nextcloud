@@ -100,10 +100,10 @@ services:
     ports:
       - 9980
     environment:
-      DOMAIN: ${COLLABORA_URL}
-      USERNAME: ${COLLABORA_ADMIN}
-      PASSWORD: ${COLLABORA_PASSWORD}
-      EXTRA_PARAMS: "--o:ssl.enable=false --o:ssl.termination=true"
+      - "domain=${COLLABORA_URL}"
+      - "username=${COLLABORA_ADMIN}"
+      - "password=${COLLABORA_PASSWORD}"
+      - "extra_params=--o:ssl.enable=false --o:ssl.termination=true"
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
