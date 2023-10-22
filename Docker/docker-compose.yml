@@ -27,6 +27,7 @@ services:
       - nextcloud-uploads:/var/www/nextcloud/data
     networks:
       - web
+      - nextcloud
     
   nextcloud_nginx:
     build: ./conf/nginx
