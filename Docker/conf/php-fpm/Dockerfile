@@ -4,6 +4,8 @@ RUN apk update \
     && apk add zsh \
     && apk add git \
     && apk add vim \
+    && apk add zip \
+    && apk add libpng-dev \
     && apk add php81-mysqli \
     && apk add php81-curl \
     && apk add php81-xml \
