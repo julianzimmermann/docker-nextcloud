@@ -99,7 +99,7 @@ services:
       - MKNOD
     ports:
       - 9980
-    exposes:
+    expose:
       - 9980
     environment:
       - "domain=${COLLABORA_URL}"
