@@ -87,6 +87,15 @@ RUN apk del autoconf \
     make \
     gcc
 
+RUN apk add nodejs \
+    && apk add nodejs-npm
+    
+RUN npm install -g npm@latest
+RUN npm cache clean -f \
+    && npm install -g n
+#RUN n latest
+RUN npm install pm2 -g
+
 # OPcache defaults
 ENV PHP_OPCACHE_ENABLE="1"
 ENV PHP_OPCACHE_MEMORY_CONSUMPTION="128"
