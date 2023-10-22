@@ -87,8 +87,7 @@ RUN apk del autoconf \
     make \
     gcc
 
-RUN apk add nodejs \
-    && apk add nodejs-npm
+RUN apk add --update nodejs npm
     
 RUN npm install -g npm@latest
 RUN npm cache clean -f \
