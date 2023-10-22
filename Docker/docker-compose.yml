@@ -45,6 +45,9 @@ services:
       - "traefik.http.routers.${PROJECT_NAME}-secure.middlewares=${PROJECT_NAME}-calcarddav"
       - "traefik.http.services.${PROJECT_NAME}.loadbalancer.server.port=80"
       - "traefik.docker.network=web"
+      - "traefik.http.middlewares.${PROJECT_NAME}-calcarddav.redirect.permanent=true"
+      - "traefik.http.middlewares.${PROJECT_NAME}-calcarddav.redirect.regex=https://(.*)/.well-known/(card|cal)dav"
+      - "traefik.http.middlewares.${PROJECT_NAME}-calcarddav.redirect.replacement=https://$$1/remote.php/dav/"
     restart: always
     ports:
       - 80
