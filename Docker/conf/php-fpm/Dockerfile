@@ -1,6 +1,9 @@
 FROM php:8.1-fpm-alpine
 
 RUN apk update \
+    && apk add zsh \
+    && apk add git \
+    && apk add vim \
     && apk add php81-mysqli \
     && apk add php81-curl \
     && apk add php81-xml \
@@ -47,6 +50,23 @@ RUN docker-php-ext-install -j$(nproc) gd \
     && docker-php-ext-enable gd \
     && docker-php-ext-enable bcmath \
     && docker-php-ext-configure intl
+
+RUN wget https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh -O - | zsh || true
+
+RUN docker-php-ext-install opcache \
+    bz2 \
+    exif \
+    gd \
+    gmp \
+    imap \
+    ldap \
+    pcntl \
+    && printf "\n" | pecl install imagick \
+    && docker-php-ext-enable imagick \
+    && printf "\n" | pecl install memcached \
+    && docker-php-ext-enable memcached \
+    && printf "\n" | pecl install apcu \
+    && docker-php-ext-enable apcu
 
 # OPcache defaults
 ENV PHP_OPCACHE_ENABLE="1"
