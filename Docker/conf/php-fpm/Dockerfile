@@ -1,20 +1,39 @@
-FROM jzit/php:7.4-fpm-alpine
+FROM php:8.1-fpm-alpine
 
 RUN apk update \
-    && apk add php7-mysqli \
+    && apk add php81-mysqli \
+    && apk add php81-curl \
+    && apk add php81-xml \
+    && apk add php81-zip \
+    && apk add php81-opcache \
+    && apk add php81-mbstring \
+    && apk add php81-intl \
+    && apk add php81-cli \
+    && apk add php81-phar \
+    && apk add php81-dom \
+    && apk add php81-fileinfo \
+    && apk add php81-pdo_sqlite \
+    && apk add php81-pdo_mysql \
+    && apk add php81-session \
+    && apk add php81-simplexml \
+    && apk add php81-sodium \
+    && apk add php81-tokenizer \
     && apk add gettext \
+    && apk add icu-dev \
+    && apk add libxml2-dev \
     && apk add freetype-dev \
     && apk add libpng-dev \
+    && apk add libressl-dev \
     && apk add libwebp-dev \
     && apk add libjpeg-turbo-dev \
     && apk add libxpm-dev \
     && apk add coreutils \
     && apk add libltdl \
+    && apk add libzip-dev \
     && apk add libmcrypt-dev \
-    && apk add php7-gd \
-    && apk add php7-bcmath \
-    && apk add busybox-suid \
-    && apk add busybox-initscripts
+    && apk add php81-gd \
+    && apk add php81-bcmath \
+    && apk add busybox-suid
 
 RUN docker-php-ext-configure gd --enable-gd --with-webp=/usr/include/ --with-freetype=/usr/include/ --with-jpeg --with-xpm
 RUN docker-php-ext-install -j$(nproc) gd \
@@ -22,21 +41,13 @@ RUN docker-php-ext-install -j$(nproc) gd \
     && docker-php-ext-install -j$(nproc) pdo \
     && docker-php-ext-install -j$(nproc) pdo_mysql \
     && docker-php-ext-install -j$(nproc) bcmath \
+    && docker-php-ext-install -j$(nproc) intl \
+    && docker-php-ext-install -j$(nproc) zip \
     && docker-php-ext-enable pdo_mysql \
     && docker-php-ext-enable gd \
-    && docker-php-ext-enable bcmath
+    && docker-php-ext-enable bcmath \
+    && docker-php-ext-configure intl
 
-RUN apk add nodejs \
-    && apk add nodejs-npm
-    
-RUN npm install -g npm@latest
-RUN npm cache clean -f \
-    && npm install -g n
-#RUN n latest
-RUN npm install pm2 -g
-
-COPY ./pm2/* /var/www/pm2/
-    
 # OPcache defaults
 ENV PHP_OPCACHE_ENABLE="1"
 ENV PHP_OPCACHE_MEMORY_CONSUMPTION="128"
