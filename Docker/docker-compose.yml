@@ -7,7 +7,6 @@ services:
     user: "82:82"
     links:
       - nextcloud_db
-      - collabora
     ports:
       - 9000
     environment:
@@ -87,33 +86,6 @@ services:
       - nextcloud_db-data:/var/lib/mysql
     networks:
       - nextcloud
-
-  collabora:
-    image: collabora/code
-    container_name: ${PROJECT_NAME}_collabora
-    networks:
-      - web
-      - nextcloud
-    cap_add:
-      - MKNOD
-    ports:
-      - 9980
-    environment:
-      DOMAIN: ${COLLABORA_URL}
-      USERNAME: ${COLLABORA_ADMIN}
-      PASSWORD: ${COLLABORA_PASSWORD}
-      EXTRA_PARAMS: "--o:ssl.enable=false --o:ssl.termination=true"
-    restart: unless-stopped
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.${PROJECT_NAME}_collabora.rule=Host(`${COLLABORA_URL}`)"
-      - "traefik.http.routers.${PROJECT_NAME}_collabora.entrypoints=collaborasecure"
-      - "traefik.http.routers.${PROJECT_NAME}_collabora.tls=true"
-      - "traefik.http.routers.${PROJECT_NAME}_collabora.tls.options=myTLSOptions@file"
-      - "traefik.http.routers.${PROJECT_NAME}_collabora.tls.certresolver=le"
-      - "traefik.http.routers.${PROJECT_NAME}_collabora.service=${PROJECT_NAME}_collabora"
-      - "traefik.http.services.${PROJECT_NAME}_collabora.loadbalancer.server.port=9980"
-      - "traefik.docker.network=web"
 
 volumes:
   nextcloud-data:
