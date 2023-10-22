@@ -107,7 +107,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.${PROJECT_NAME}_collabora.rule=Host(`${COLLABORA_URL}`)"
-      - "traefik.http.routers.${PROJECT_NAME}_collabora.entrypoints=websecure"
+      - "traefik.http.routers.${PROJECT_NAME}_collabora.entrypoints=collaborasecure"
       - "traefik.http.routers.${PROJECT_NAME}_collabora.tls=true"
       - "traefik.http.routers.${PROJECT_NAME}_collabora.tls.options=myTLSOptions@file"
       - "traefik.http.routers.${PROJECT_NAME}_collabora.tls.certresolver=le"
