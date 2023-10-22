@@ -5,3 +5,4 @@ smtp_port = ${PHP_INI_SMTP_PORT}
 memory_limit = ${PHP_INI_MEMORY_LIMIT}
 max_input_time = ${PHP_INI_MAX_INPUT_TIME}
 max_execution_time = ${PHP_INI_MAX_EXECUTION_TIME}
+apc.enable_cli=1
