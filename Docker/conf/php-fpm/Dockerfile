@@ -54,7 +54,7 @@ RUN apk update \
     && apk add libc-dev \
     && apk add zlib-dev
 
-RUN docker-php-ext-configure gd --enable-gd --with-webp=/usr/include/ --with-freetype --with-jpeg --with-xpm \
+RUN docker-php-ext-configure gd --enable-gd --with-webp --with-freetype --with-jpeg --with-xpm \
     && docker-php-ext-configure intl
 RUN docker-php-ext-install -j$(nproc) gd \
     && docker-php-ext-install -j$(nproc) mysqli \
@@ -103,6 +103,7 @@ ENV PHP_OPCACHE_MEMORY_CONSUMPTION="128"
 ENV PHP_OPCACHE_MAX_ACCELERATED_FILES="10000"
 ENV PHP_OPCACHE_REVALIDATE_FREQUENCY="1"
 ENV PHP_OPCACHE_VALIDATE_TIMESTAMPS="0"
+ENV PHP_OPCACHE_INTERNED_STRINGS_BUFFER="10"
 
 # PHP-FPM defaults
 ENV PHP_FPM_PM="dynamic"
