@@ -1,12 +1,12 @@
-version: "3.7"
 services:
   nextcloud_php:
     build: ./conf/php-fpm
     container_name: ${PROJECT_NAME}_php
-    restart: always
-    user: "82:82"
+    restart: unless-stopped
+    user: "33:33"
     links:
       - nextcloud_db
+      - nextcloud_redis
     ports:
       - 9000
     environment:
@@ -15,6 +15,9 @@ services:
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      REDIS_HOST: nextcloud_redis
+      REDIS_HOST_PORT: 6379
+      REDIS_HOST_PASSWORD: ${REDIS_PASSWORD}
       PHP_INI_UPLOAD_SIZE: ${PHP_INI_UPLOAD_SIZE}
       PHP_INI_SMTP: ${PHP_INI_SMTP}
       PHP_INI_SMTP_PORT: ${PHP_INI_SMTP_PORT}
@@ -22,12 +25,51 @@ services:
       PHP_INI_MAX_INPUT_TIME: ${PHP_INI_MAX_INPUT_TIME}
       PHP_INI_MAX_EXECUTION_TIME: ${PHP_INI_MAX_EXECUTION_TIME}
     volumes:
-      - nextcloud-data:/var/www/nextcloud/releases/current
-      - nextcloud-uploads:/var/www/nextcloud/data
+      - type: bind
+        source: /mnt/docker/data/nextcloud/releases
+        target: /var/www/nextcloud/releases
+      - type: bind
+        source: /mnt/docker/data/nextcloud/data
+        target: /var/www/nextcloud/data
     networks:
       - web
       - nextcloud
-    
+   
+  nextcloud_cli:
+    build: ./conf/php-cli
+    tty: true
+      #    command: pm2 start /var/www/pm2/ecosystem.config.js
+    container_name: ${PROJECT_NAME}_cli
+    restart: unless-stopped
+    user: "33:33"
+    links:
+      - nextcloud_db
+      - nextcloud_redis
+    environment:
+      APP_ROOT_DIR: /var/www/nextcloud/releases/current
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      REDIS_HOST: nextcloud_redis
+      REDIS_HOST_PORT: 6379
+      REDIS_HOST_PASSWORD: ${REDIS_PASSWORD}
+      PHP_INI_UPLOAD_SIZE: ${PHP_INI_UPLOAD_SIZE}
+      PHP_INI_SMTP: ${PHP_INI_SMTP}
+      PHP_INI_SMTP_PORT: ${PHP_INI_SMTP_PORT}
+      PHP_INI_MEMORY_LIMIT: ${PHP_INI_MEMORY_LIMIT}
+      PHP_INI_MAX_INPUT_TIME: ${PHP_INI_MAX_INPUT_TIME}
+      PHP_INI_MAX_EXECUTION_TIME: ${PHP_INI_MAX_EXECUTION_TIME}
+    volumes:
+      - type: bind
+        source: /mnt/docker/data/nextcloud/releases
+        target: /var/www/nextcloud/releases
+      - type: bind
+        source: /mnt/docker/data/nextcloud/data
+        target: /var/www/nextcloud/data
+    networks:
+      - nextcloud
+
   nextcloud_nginx:
     build: ./conf/nginx
     container_name: ${PROJECT_NAME}_nginx
@@ -49,7 +91,7 @@ services:
       - "traefik.http.middlewares.${PROJECT_NAME}-calcarddav.redirectregex.permanent=true"
       - "traefik.http.middlewares.${PROJECT_NAME}-calcarddav.redirectregex.regex=https://(.*)/.well-known/(card|cal)dav"
       - "traefik.http.middlewares.${PROJECT_NAME}-calcarddav.redirectregex.replacement=https://$$1/remote.php/dav/"
-    restart: always
+    restart: unless-stopped
     ports:
       - 80
       - 443
@@ -61,21 +103,37 @@ services:
       NGINX_ACCESS_LOG: ${NGINX_ACCESS_LOG}
       NGINX_ROOT_DIR: /var/www/nextcloud/releases/current
       PHP_INI_UPLOAD_SIZE: ${PHP_INI_UPLOAD_SIZE}
-      UID: 82
-      GID: 82
+      UID: 33
+      GID: 33
     links:
       - nextcloud_php
     volumes:
-      - nextcloud-data:/var/www/nextcloud/releases/current
-      - nextcloud-uploads:/var/www/nextcloud/data
+      - type: bind
+        source: /mnt/docker/data/nextcloud/releases
+        target: /var/www/nextcloud/releases
+      - type: bind
+        source: /mnt/docker/data/nextcloud/data
+        target: /var/www/nextcloud/data
     networks:
       - web
+      - nextcloud
+
+  nextcloud_redis:
+   image: redis:latest
+   container_name: ${PROJECT_NAME}_redis
+   volumes:
+      - /mnt/docker/data/nextcloud/redis:/data
+   ports:
+      - 6379
+   restart: unless-stopped
+   command: redis-server --requirepass ${REDIS_PASSWORD}
+   networks:
       - nextcloud
 
   nextcloud_db:
     image: mysql:latest
     container_name: ${PROJECT_NAME}_db
-    restart: always
+    restart: unless-stopped
     environment:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
@@ -84,18 +142,25 @@ services:
     ports:
       - 3306
     volumes:
-      - nextcloud_db-data:/var/lib/mysql
+      - type: bind
+        source: /mnt/docker/data/nextcloud/db
+        target: /var/lib/mysql
     networks:
       - nextcloud
 
   collabora:
-    image: collabora/code
+    image: collabora/code:24.04.6.2.1
     container_name: ${PROJECT_NAME}_collabora
     networks:
       - web
       - nextcloud
     cap_add:
       - MKNOD
+      - CHOWN
+      - FOWNER
+      - SYS_CHROOT
+      - SETGID
+      - SETUID
     ports:
       - 9980:9980
     expose:
@@ -120,13 +185,22 @@ services:
       - "traefik.http.services.${PROJECT_NAME}_collabora.loadbalancer.server.port=9980"
       - "traefik.docker.network=web"
 
-volumes:
-  nextcloud-data:
-    name: "${PROJECT_NAME}-data"
-  nextcloud-uploads:
-    name: "${PROJECT_NAME}-uploads"
-  nextcloud_db-data:
-    name: "${PROJECT_NAME}-db-data"
+  nextcloud-whiteboard-server:
+    image: ghcr.io/nextcloud-releases/whiteboard:release
+    ports:
+      - 3002:3002
+    environment:
+      - NEXTCLOUD_URL=https://${PROJECT_NAME}_nginx
+      - JWT_SECRET_KEY=${WHITEBOARD_SECRET}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.${PROJECT_NAME}_whiteboard.loadbalancer.server.port=3002"
+      - "traefik.http.middlewares.${PROJECT_NAME}_strip-whiteboard.stripprefix.prefixes=/whiteboard"
+      - "traefik.http.routers.${PROJECT_NAME}_whiteboard.rule=Host(`${NGINX_VIRTUAL_HOST}`) && PathPrefix(`/whiteboard`)"
+      - "traefik.http.routers.${PROJECT_NAME}_whiteboard.middlewares=${PROJECT_NAME}_strip-whiteboard"
+    networks:
+      - web
+      - nextcloud
 
 networks:
   web:
