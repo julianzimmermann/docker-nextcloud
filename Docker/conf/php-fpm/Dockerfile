@@ -42,7 +42,6 @@ RUN apt update \
     && apt install -y libbz2-dev
 
 RUN docker-php-ext-configure gd --enable-gd --prefix=/usr --with-freetype --with-jpeg --with-webp --with-xpm \
-#RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install -j$(nproc) gd \
     && docker-php-ext-configure intl
 
@@ -62,7 +61,6 @@ RUN wget https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh -
 RUN docker-php-ext-install opcache \
 bz2 \
 exif \
-#gd \
 gmp \
 pcntl \
 && printf "\n" | pecl install memcached \
@@ -71,8 +69,6 @@ pcntl \
 && docker-php-ext-enable apcu \
 && printf "\n" | pecl install redis \
 && docker-php-ext-enable redis
-#&& printf "\n" | pecl install imagick \
-#&& docker-php-ext-enable imagick
 
 RUN git clone https://github.com/Imagick/imagick.git --depth 1 /tmp/imagick && \
     cd /tmp/imagick && \
@@ -89,21 +85,13 @@ RUN apt remove -y autoconf \
 make \
 gcc
 
-#RUN apt install -y nodejs npm
-
-#RUN npm install -g npm@latest
-#RUN npm cache clean -f \
-#&& npm install -g n
-
-#RUN npm install pm2 -g
-
 # OPcache defaults
 ENV PHP_OPCACHE_ENABLE="1"
 ENV PHP_OPCACHE_MEMORY_CONSUMPTION="128"
 ENV PHP_OPCACHE_MAX_ACCELERATED_FILES="10000"
 ENV PHP_OPCACHE_REVALIDATE_FREQUENCY="1"
 ENV PHP_OPCACHE_VALIDATE_TIMESTAMPS="0"
-ENV PHP_OPCACHE_INTERNED_STRINGS_BUFFER="10"
+ENV PHP_OPCACHE_INTERNED_STRINGS_BUFFER="15"
 
 # PHP-FPM defaults
 ENV PHP_FPM_PM="dynamic"
@@ -132,7 +120,6 @@ COPY ./www.conf.template /usr/local/etc/php-fpm.d/www.conf.template
 
 COPY ./docker-entrypoint/php.sh /usr/local/bin/docker-entrypoint.sh
 
-#COPY ./pm2 /var/www/pm2
 
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh \
     && set -e \
@@ -143,5 +130,4 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh \
 
 RUN mkdir -p /var/www/nextcloud/releases/current \
     && chown -R www-data:www-data /var/www/nextcloud/releases/current 
-#    && chown -R www-data:www-data /var/www/pm2
 
