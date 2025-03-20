@@ -13,7 +13,7 @@ RUN apt update \
     && apt install -y gettext \
     && apt install -y icu-devtools \
     && apt install -y libxml2-dev \
-    && apt install -y libfreetype-dev \
+    && apt install -y libfreetype6-dev \
     && apt install -y libssl-dev \
     && apt install -y libwebp-dev \
     && apt install -y libjpeg62-turbo-dev \
@@ -28,17 +28,20 @@ RUN apt update \
     && apt install -y imagemagick \
     && apt install -y libmagickwand-dev \
     && apt install -y libmemcached-dev \
+    && apt install -v libpq-dev \
+    && apt install -v libicu-dev \
+    && apt install -v libxml2-dev \
+    && apt install -v libcurl4-openssl-dev \
+    && apt install -v pkg-config \
+    && apt install -v libpq-dev \
     && apt install -y autoconf \
     && apt install -y make \
     && apt install -y gcc \
     && apt install -y libc-dev \
     && apt install -y zlib1g-dev \
-    && apt install -y libbz2-dev \
-    && apt install -y cron \
-    && apt install -y libpq-dev
+    && apt install -y libbz2-dev
 
-#RUN docker-php-ext-configure gd --enable-gd --prefix=/usr --with-freetype --with-jpeg --with-webp --with-xpm \
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
+RUN docker-php-ext-configure gd --enable-gd --prefix=/usr --with-freetype --with-jpeg --with-webp --with-xpm \
     && docker-php-ext-install -j$(nproc) gd \
     && docker-php-ext-configure intl
 
@@ -59,7 +62,6 @@ RUN wget https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh -
 RUN docker-php-ext-install opcache \
 bz2 \
 exif \
-gd \
 gmp \
 pcntl \
 && printf "\n" | pecl install memcached \
@@ -90,14 +92,14 @@ ENV PHP_OPCACHE_MEMORY_CONSUMPTION="128"
 ENV PHP_OPCACHE_MAX_ACCELERATED_FILES="10000"
 ENV PHP_OPCACHE_REVALIDATE_FREQUENCY="1"
 ENV PHP_OPCACHE_VALIDATE_TIMESTAMPS="0"
-ENV PHP_OPCACHE_INTERNED_STRINGS_BUFFER="10"
+ENV PHP_OPCACHE_INTERNED_STRINGS_BUFFER="15"
 
 ENV PHP_INI_UPLOAD_SIZE=1024M
 ENV PHP_INI_SMTP=localhost
 ENV PHP_INI_SMTP_PORT=25
 ENV PHP_INI_MEMORY_LIMIT=1024M
 ENV PHP_INI_MAX_INPUT_TIME=60
-ENV PHP_INI_MAX_EXECUTION_TIME=30
+ENV PHP_INI_MAX_EXECUTION_TIME=60
 
 # Add the opcache configuration
 COPY ./opcache.ini.template "$PHP_INI_DIR/conf.d/opcache.ini.template"
@@ -105,7 +107,6 @@ COPY ./opcache.ini.template "$PHP_INI_DIR/conf.d/opcache.ini.template"
 # Add php.ini
 COPY ./php.ini.template "$PHP_INI_DIR/conf.d/php.ini.template"
 
-#COPY ./docker-entrypoint/php.sh /usr/local/bin/docker-entrypoint.sh
 COPY ./cron.sh /cron.sh
 
 RUN mkdir -p /var/www/nextcloud/releases/current \
@@ -116,27 +117,9 @@ RUN mkdir -p /var/www/nextcloud/releases/current \
     && chmod +x /cron.sh \
     && touch /var/log/cron.log
 
-ADD crontab /nextcloud-cron
-
-#RUN chmod +x /usr/local/bin/docker-entrypoint.sh \
 RUN set -e \
     && export ESC="$" \
     && envsubst < /usr/local/etc/php/conf.d/opcache.ini.template > /usr/local/etc/php/conf.d/opcache.ini \
-    && envsubst < /usr/local/etc/php/conf.d/php.ini.template > /usr/local/etc/php/conf.d/php.ini \
-    && chmod 0644 /nextcloud-cron \
-    && crontab -u root /nextcloud-cron
+    && envsubst < /usr/local/etc/php/conf.d/php.ini.template > /usr/local/etc/php/conf.d/php.ini
 
-#RUN apt install -y nodejs npm
-
-#COPY ./pm2 /var/www/pm2
-
-#RUN npm install -g npm@latest \
-#    && npm cache clean -f \
-#    && npm install pm2 -g \
-#    && mkdir /var/www/.pm2/ \
-#    && chown -R www-data:www-data /var/www/pm2 \
-#    && chown -R www-data:www-data /var/www/.pm2
-
-#CMD ["pm2-runtime", "process.yml"]
-#CMD (cron -f &) && tail -f /var/log/cron.log
 CMD sh ./cron.sh

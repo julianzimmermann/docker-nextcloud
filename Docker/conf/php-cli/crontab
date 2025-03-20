@@ -1,1 +1,0 @@
-*/5  *  *  *  * www-data /usr/local/bin/php --define apc.enable_cli=1 -f /var/www/nextcloud/releases/current/cron.php
