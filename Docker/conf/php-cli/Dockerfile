@@ -1,4 +1,4 @@
-FROM php:8.3-fpm
+FROM php:8.3-cli
 
 RUN rm -rf /etc/apt/sources.list.d/debian.sources
 
@@ -13,7 +13,7 @@ RUN apt update \
     && apt install -y gettext \
     && apt install -y icu-devtools \
     && apt install -y libxml2-dev \
-    && apt install -y libfreetype6-dev \
+    && apt install -y libfreetype-dev \
     && apt install -y libssl-dev \
     && apt install -y libwebp-dev \
     && apt install -y libjpeg62-turbo-dev \
@@ -28,25 +28,22 @@ RUN apt update \
     && apt install -y imagemagick \
     && apt install -y libmagickwand-dev \
     && apt install -y libmemcached-dev \
-    && apt install -v libpq-dev \
-    && apt install -v libicu-dev \
-    && apt install -v libxml2-dev \
-    && apt install -v libcurl4-openssl-dev \
-    && apt install -v pkg-config \
-    && apt install -v libpq-dev \
     && apt install -y autoconf \
     && apt install -y make \
     && apt install -y gcc \
     && apt install -y libc-dev \
     && apt install -y zlib1g-dev \
-    && apt install -y libbz2-dev
+    && apt install -y libbz2-dev \
+    && apt install -y cron \
+    && apt install -y libpq-dev
 
-RUN docker-php-ext-configure gd --enable-gd --prefix=/usr --with-freetype --with-jpeg --with-webp --with-xpm \
-#RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
+#RUN docker-php-ext-configure gd --enable-gd --prefix=/usr --with-freetype --with-jpeg --with-webp --with-xpm \
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install -j$(nproc) gd \
     && docker-php-ext-configure intl
 
-RUN docker-php-ext-install -j$(nproc) mysqli \
+RUN docker-php-ext-install -j$(nproc) gd \
+    && docker-php-ext-install -j$(nproc) mysqli \
     && docker-php-ext-install -j$(nproc) pdo \
     && docker-php-ext-install -j$(nproc) pdo_mysql \
     && docker-php-ext-install -j$(nproc) bcmath \
@@ -62,7 +59,7 @@ RUN wget https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh -
 RUN docker-php-ext-install opcache \
 bz2 \
 exif \
-#gd \
+gd \
 gmp \
 pcntl \
 && printf "\n" | pecl install memcached \
@@ -70,9 +67,7 @@ pcntl \
 && printf "\n" | pecl install apcu \
 && docker-php-ext-enable apcu \
 && printf "\n" | pecl install redis \
-&& docker-php-ext-enable redis
-#&& printf "\n" | pecl install imagick \
-#&& docker-php-ext-enable imagick
+&& docker-php-ext-enable redis 
 
 RUN git clone https://github.com/Imagick/imagick.git --depth 1 /tmp/imagick && \
     cd /tmp/imagick && \
@@ -89,14 +84,6 @@ RUN apt remove -y autoconf \
 make \
 gcc
 
-#RUN apt install -y nodejs npm
-
-#RUN npm install -g npm@latest
-#RUN npm cache clean -f \
-#&& npm install -g n
-
-#RUN npm install pm2 -g
-
 # OPcache defaults
 ENV PHP_OPCACHE_ENABLE="1"
 ENV PHP_OPCACHE_MEMORY_CONSUMPTION="128"
@@ -104,15 +91,6 @@ ENV PHP_OPCACHE_MAX_ACCELERATED_FILES="10000"
 ENV PHP_OPCACHE_REVALIDATE_FREQUENCY="1"
 ENV PHP_OPCACHE_VALIDATE_TIMESTAMPS="0"
 ENV PHP_OPCACHE_INTERNED_STRINGS_BUFFER="10"
-
-# PHP-FPM defaults
-ENV PHP_FPM_PM="dynamic"
-ENV PHP_FPM_MAX_CHILDREN="5"
-ENV PHP_FPM_START_SERVERS="2"
-ENV PHP_FPM_MIN_SPARE_SERVERS="1"
-ENV PHP_FPM_MAX_SPARE_SERVERS="2"
-ENV PHP_FPM_MAX_REQUESTS="1000"
-
 
 ENV PHP_INI_UPLOAD_SIZE=1024M
 ENV PHP_INI_SMTP=localhost
@@ -127,21 +105,38 @@ COPY ./opcache.ini.template "$PHP_INI_DIR/conf.d/opcache.ini.template"
 # Add php.ini
 COPY ./php.ini.template "$PHP_INI_DIR/conf.d/php.ini.template"
 
-# Copy the PHP-FPM configuration file
-COPY ./www.conf.template /usr/local/etc/php-fpm.d/www.conf.template
+#COPY ./docker-entrypoint/php.sh /usr/local/bin/docker-entrypoint.sh
+COPY ./cron.sh /cron.sh
 
-COPY ./docker-entrypoint/php.sh /usr/local/bin/docker-entrypoint.sh
+RUN mkdir -p /var/www/nextcloud/releases/current \
+    && mkdir -p /home/www-data \
+    && chown -R www-data:www-data /var/www/nextcloud/releases/current \
+    && chown -R www-data:www-data /home/www-data \
+    && chown -R www-data:www-data /cron.sh \
+    && chmod +x /cron.sh \
+    && touch /var/log/cron.log
 
-#COPY ./pm2 /var/www/pm2
+ADD crontab /nextcloud-cron
 
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh \
-    && set -e \
+#RUN chmod +x /usr/local/bin/docker-entrypoint.sh \
+RUN set -e \
     && export ESC="$" \
     && envsubst < /usr/local/etc/php/conf.d/opcache.ini.template > /usr/local/etc/php/conf.d/opcache.ini \
     && envsubst < /usr/local/etc/php/conf.d/php.ini.template > /usr/local/etc/php/conf.d/php.ini \
-    && envsubst < /usr/local/etc/php-fpm.d/www.conf.template > /usr/local/etc/php-fpm.d/www.conf
+    && chmod 0644 /nextcloud-cron \
+    && crontab -u root /nextcloud-cron
 
-RUN mkdir -p /var/www/nextcloud/releases/current \
-    && chown -R www-data:www-data /var/www/nextcloud/releases/current 
-#    && chown -R www-data:www-data /var/www/pm2
+#RUN apt install -y nodejs npm
 
+#COPY ./pm2 /var/www/pm2
+
+#RUN npm install -g npm@latest \
+#    && npm cache clean -f \
+#    && npm install pm2 -g \
+#    && mkdir /var/www/.pm2/ \
+#    && chown -R www-data:www-data /var/www/pm2 \
+#    && chown -R www-data:www-data /var/www/.pm2
+
+#CMD ["pm2-runtime", "process.yml"]
+#CMD (cron -f &) && tail -f /var/log/cron.log
+CMD sh ./cron.sh
